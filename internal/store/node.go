@@ -32,7 +32,9 @@ import (
 
 var (
 	descNodeLabelsName          = "kube_node_labels"
+	descNodeAnnotationsName     = "kube_node_annotations"
 	descNodeLabelsHelp          = "Kubernetes labels converted to Prometheus labels."
+	descNodeAnnotationsHelp     = "Kubernetes node annotations converted to Prometheus labels."
 	descNodeLabelsDefaultLabels = []string{"node"}
 
 	nodeMetricFamilies = []metric.FamilyGenerator{
@@ -93,6 +95,23 @@ var (
 			Help: descNodeLabelsHelp,
 			GenerateFunc: wrapNodeFunc(func(n *v1.Node) *metric.Family {
 				labelKeys, labelValues := kubeLabelsToPrometheusLabels(n.Labels)
+				return &metric.Family{
+					Metrics: []*metric.Metric{
+						{
+							LabelKeys:   labelKeys,
+							LabelValues: labelValues,
+							Value:       1,
+						},
+					},
+				}
+			}),
+		},
+		{
+			Name: descNodeAnnotationsName,
+			Type: metric.Gauge,
+			Help: descNodeAnnotationsHelp,
+			GenerateFunc: wrapNodeFunc(func(n *v1.Node) *metric.Family {
+				labelKeys, labelValues := mapToPrometheusLabels(n.Annotations, "annotation")
 				return &metric.Family{
 					Metrics: []*metric.Metric{
 						{

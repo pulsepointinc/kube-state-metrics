@@ -52,15 +52,18 @@ func TestNodeStore(t *testing.T) {
 			Want: `
 				# HELP kube_node_info Information about a cluster node.
 				# HELP kube_node_labels Kubernetes labels converted to Prometheus labels.
+				# HELP kube_node_annotations Kubernetes node annotations converted to Prometheus labels.
 				# HELP kube_node_spec_unschedulable Whether a node can schedule new pods.
 				# TYPE kube_node_info gauge
 				# TYPE kube_node_labels gauge
+				# TYPE kube_node_annotations gauge
 				# TYPE kube_node_spec_unschedulable gauge
 				kube_node_info{container_runtime_version="rkt",kernel_version="kernel",kubelet_version="kubelet",kubeproxy_version="kubeproxy",node="127.0.0.1",os_image="osimage",pod_cidr="172.24.10.0/24",provider_id="provider://i-uniqueid"} 1
 				kube_node_labels{node="127.0.0.1"} 1
+				kube_node_annotations{node="127.0.0.1"} 1
 				kube_node_spec_unschedulable{node="127.0.0.1"} 0
 			`,
-			MetricNames: []string{"kube_node_spec_unschedulable", "kube_node_labels", "kube_node_info"},
+			MetricNames: []string{"kube_node_spec_unschedulable", "kube_node_labels", "kube_node_annotations", "kube_node_info"},
 		},
 		// Verify unset fields are skipped. Note that prometheus subsequently drops empty labels.
 		{
@@ -84,6 +87,9 @@ func TestNodeStore(t *testing.T) {
 					CreationTimestamp: metav1.Time{Time: time.Unix(1500000000, 0)},
 					Labels: map[string]string{
 						"node-role.kubernetes.io/master": "",
+					},
+					Annotations: map[string]string{
+						"ingress.kubernetes.io/node-weight": "11",
 					},
 				},
 				Spec: v1.NodeSpec{
@@ -121,6 +127,7 @@ func TestNodeStore(t *testing.T) {
 		# HELP kube_node_created Unix creation timestamp
 		# HELP kube_node_info Information about a cluster node.
 		# HELP kube_node_labels Kubernetes labels converted to Prometheus labels.
+		# HELP kube_node_annotations Kubernetes node annotations converted to Prometheus labels.
 		# HELP kube_node_role The role of a cluster node.
 		# HELP kube_node_spec_unschedulable Whether a node can schedule new pods.
 		# HELP kube_node_status_allocatable The allocatable for different resources of a node that are available for scheduling.
@@ -134,6 +141,7 @@ func TestNodeStore(t *testing.T) {
 		# TYPE kube_node_created gauge
 		# TYPE kube_node_info gauge
 		# TYPE kube_node_labels gauge
+		# TYPE kube_node_annotations gauge
 		# TYPE kube_node_role gauge
 		# TYPE kube_node_spec_unschedulable gauge
 		# TYPE kube_node_status_allocatable gauge
@@ -147,6 +155,7 @@ func TestNodeStore(t *testing.T) {
 		kube_node_created{node="127.0.0.1"} 1.5e+09
         kube_node_info{container_runtime_version="rkt",kernel_version="kernel",kubelet_version="kubelet",kubeproxy_version="kubeproxy",node="127.0.0.1",os_image="osimage",pod_cidr="172.24.10.0/24",provider_id="provider://i-randomidentifier"} 1
 		kube_node_labels{label_node_role_kubernetes_io_master="",node="127.0.0.1"} 1
+		kube_node_annotations{annotation_ingress_kubernetes_io_node_weight="11",node="127.0.0.1"} 1
 		kube_node_role{node="127.0.0.1",role="master"} 1
         kube_node_spec_unschedulable{node="127.0.0.1"} 1
         kube_node_status_allocatable_cpu_cores{node="127.0.0.1"} 3
@@ -179,6 +188,7 @@ func TestNodeStore(t *testing.T) {
 				"kube_node_status_allocatable_cpu_cores",
 				"kube_node_spec_unschedulable",
 				"kube_node_labels",
+				"kube_node_annotations",
 				"kube_node_role",
 				"kube_node_info",
 				"kube_node_created",
